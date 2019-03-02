@@ -33,6 +33,7 @@ public:
     uint64 getImcReads();
     uint64 getImcWrites();
     uint64 getIoRequests();
+    uint64 getIARequests();
 };
 
 

@@ -538,6 +538,7 @@ class PCM_API PCM
     std::shared_ptr<CounterWidthExtender> clientImcReads;
     std::shared_ptr<CounterWidthExtender> clientImcWrites;
     std::shared_ptr<CounterWidthExtender> clientIoRequests;
+    std::shared_ptr<CounterWidthExtender> clientIARequests;
 
     bool disable_JKT_workaround;
     bool blocked;              // track if time-driven counter update is running or not: PCM is blocked
@@ -2165,6 +2166,7 @@ protected:
     uint64 UncEDCFullWrites;
     uint64 UncEDCNormalReads;
     uint64 UncMCIORequests;
+    uint64 UncMCIARequests;
     uint64 PackageEnergyStatus;
     uint64 DRAMEnergyStatus;
     uint64 TOROccupancyIAMiss;

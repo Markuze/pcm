@@ -4184,6 +4184,7 @@ ServerUncorePowerState PCM::getServerUncorePowerState(uint32 socket)
             assert(channel < result.DRAMClocks.size());
             result.DRAMClocks[channel] = server_pcicfg_uncore[socket]->getDRAMClocks(channel);
             assert(channel < result.MCCounter.size());
+		/* FIXME: Read MC counters here... */
             for (uint32 cnt = 0; cnt < ServerUncorePowerState::maxCounters; ++cnt)
                 result.MCCounter[channel][cnt] = server_pcicfg_uncore[socket]->getMCCounter(channel, cnt);
         }
