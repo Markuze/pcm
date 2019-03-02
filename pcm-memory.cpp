@@ -365,7 +365,7 @@ void display_bandwidth(PCM *m, memdata_t *md, uint32 no_columns, const bool show
 	  cout << "\
                     \r|--     Memory Channel Monitoring     --|\n\
                     \r|---------------------------------------|\n\
-                    \r"; 
+                    \r";
                   for(uint64 channel = 0; channel < max_imc_channels; ++channel)
                   {
                     if(md->iMC_Rd_socket_chan[skt][channel] < 0.0 && md->iMC_Wr_socket_chan[skt][channel] < 0.0) //If the channel read neg. value, the channel is not working; skip it.
@@ -582,7 +582,7 @@ void display_bandwidth_csv(PCM *m, memdata_t *md, uint64 elapsedTime, const bool
 	               continue;
                   cout <<setw(8) << md->EDC_Rd_socket_chan[skt][channel] << ';'
 	               <<setw(8) << md->EDC_Wr_socket_chan[skt][channel] << ';';
-	
+
 	       }
 	    }
              cout <<setw(8) << md->EDC_Rd_socket[skt] <<';'
@@ -759,7 +759,7 @@ void calculate_bandwidth(PCM *m, const ServerUncorePowerState uncState1[], const
             cout << "\
                 \r|-------------------------------------------|\n\
                 \r";
-	
+
             skt += 1;
         }
     }
@@ -784,7 +784,7 @@ int main(int argc, char * argv[])
     cerr << endl;
     cerr << " Processor Counter Monitor: Memory Bandwidth Monitoring Utility " << PCM_VERSION << endl;
     cerr << endl;
-    
+
     cerr << " This utility measures memory bandwidth per channel or per DIMM rank in real-time" << endl;
     cerr << endl;
 
@@ -1016,7 +1016,7 @@ int main(int argc, char * argv[])
     if (csv) {
         if( delay<=0.0 ) delay = PCM_DELAY_DEFAULT;
     } else {
-        // for non-CSV mode delay < 1.0 does not make a lot of practical sense: 
+        // for non-CSV mode delay < 1.0 does not make a lot of practical sense:
         // hard to read from the screen, or
         // in case delay is not provided in command line => set default
         if( ((delay<1.0) && (delay>0.0)) || (delay<=0.0) ) delay = PCM_DELAY_DEFAULT;
@@ -1025,7 +1025,7 @@ int main(int argc, char * argv[])
     cerr << "Update every "<<delay<<" seconds"<< endl;
 
     for(uint32 i=0; i<m->getNumSockets(); ++i)
-        BeforeState[i] = m->getServerUncorePowerState(i); 
+        BeforeState[i] = m->getServerUncorePowerState(i);
 
     BeforeTime = m->getTickCount();
 

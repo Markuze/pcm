@@ -78,6 +78,14 @@ public:
         uint64 operator () () { return clientBW->getIoRequests(); }
     };
 
+    struct ClientIARequestsCounter : public AbstractRawCounter
+    {
+        std::shared_ptr<ClientBW> clientBW;
+        ClientIARequestsCounter(std::shared_ptr<ClientBW> clientBW_) : clientBW(clientBW_) { }
+        uint64 operator () () { return clientBW->getIARequests(); }
+    };
+
+
     struct MBLCounter : public AbstractRawCounter
     {
         std::shared_ptr<SafeMsrHandle> msr;

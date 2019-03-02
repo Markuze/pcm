@@ -1401,6 +1401,8 @@ void PCM::initUncoreObjects()
                new CounterWidthExtender::ClientImcWritesCounter(clientBW), 32, 10000);
            clientIoRequests = std::make_shared<CounterWidthExtender>(
                new CounterWidthExtender::ClientIoRequestsCounter(clientBW), 32, 10000);
+           clientIARequests = std::make_shared<CounterWidthExtender>(
+               new CounterWidthExtender::ClientIARequestsCounter(clientBW), 32, 10000);
 
        } catch(...)
        {
@@ -1670,7 +1672,7 @@ PCM::PCM() :
     max_qpi_speed(0),
     L3ScalingFactor(0),
     pkgThermalSpecPower(-1),
-    pkgMinimumPower(-1), 
+    pkgMinimumPower(-1),
     pkgMaximumPower(-1),
     allow_multiple_instances(false),
     programmed_pmu(false),
@@ -3783,6 +3785,7 @@ void PCM::readAndAggregateUncoreMCCounters(const uint32 socket, CounterStateType
         result.UncMCNormalReads += clientImcReads->read();
         result.UncMCFullWrites += clientImcWrites->read();
         result.UncMCIORequests += clientIoRequests->read();
+        result.UncMCIARequests += clientIARequests->read();
     }
     else
     {
@@ -4215,9 +4218,9 @@ ServerUncorePowerState PCM::getServerUncorePowerState(uint32 socket)
         MSR[refCore]->read(IA32_TIME_STAMP_COUNTER, &result.InvariantTSC);
         readAndAggregatePackageCStateResidencies(MSR[refCore], result);
     }
-  
+
     readAndAggregateEnergyCounters(socket, result);
-  
+
     return result;
 }
 
