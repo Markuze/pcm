@@ -451,11 +451,11 @@ void build_registers(PCM *m, PCM::ExtendedCustomCoreEventDescription conf, bool 
 
 void collect_data(PCM *m, bool enable_pmm, bool enable_verbose, int delay_ms)
 {
-
+	int i = 6;
     BeforeState = new ServerUncorePowerState[m->getNumSockets()];
     AfterState = new ServerUncorePowerState[m->getNumSockets()];
 
-    while (1)
+    while (i--)
     {
         collect_beforestate_uncore(m);
         collect_beforestate_core(m);
