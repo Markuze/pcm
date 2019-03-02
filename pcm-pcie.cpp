@@ -59,9 +59,9 @@ typedef struct
 
 typedef struct
 {
-    PCIeEvents_t total; 
-    PCIeEvents_t miss; 
-    PCIeEvents_t hit; 
+    PCIeEvents_t total;
+    PCIeEvents_t miss;
+    PCIeEvents_t hit;
 }sample_t;
 
 PCIeEvents_t aggregate_sample;
@@ -109,7 +109,7 @@ void print_usage(const string progname)
     cerr << "  -csv[=file.csv] | /csv[=file.csv]  => output compact CSV format to screen or" << endl
          << "                                        to a file, in case filename is provided" << endl;
     cerr << "  -B                                 => Estimate PCIe B/W (in Bytes/sec) by multiplying" << endl;
-    cerr << "                                        the number of transfers by the cache line size (=64 bytes)." << endl; 
+    cerr << "                                        the number of transfers by the cache line size (=64 bytes)." << endl;
     cerr << " It overestimates the bandwidth under traffic with many partial cache line transfers." << endl;
     cerr << endl;
     print_events();
@@ -140,8 +140,8 @@ int main(int argc, char * argv[])
 
     double delay = -1.0;
     bool csv = false;
-    bool print_bandwidth = false;
-	bool print_additional_info = false;
+    bool print_bandwidth = true;
+	bool print_additional_info = true;
     char * sysCmd = NULL;
     char ** sysArgv = NULL;
     unsigned int numberOfIterations = 0; // number of iterations
@@ -253,7 +253,7 @@ int main(int argc, char * argv[])
             cerr << "Access to Processor Counter Monitor has denied (Unknown error)." << endl;
             exit(EXIT_FAILURE);
     }
-    
+
     print_cpu_details();
     if(!(m->hasPCICFGUncore()))
     {
@@ -266,7 +266,7 @@ int main(int argc, char * argv[])
         cerr << "Only systems with up to "<<max_sockets<<" sockets are supported! Program aborted" << endl;
         exit(EXIT_FAILURE);
     }
-  
+
     if(m->isSomeCoreOfflined())
     {
         cerr << "Core offlining is not supported. Program aborted" << endl;
@@ -284,7 +284,7 @@ int main(int argc, char * argv[])
     if (csv) {
         if( delay<=0.0 ) delay = PCM_DELAY_DEFAULT;
     } else {
-        // for non-CSV mode delay < 1.0 does not make a lot of practical sense: 
+        // for non-CSV mode delay < 1.0 does not make a lot of practical sense:
         // hard to read from the screen, or
         // in case delay is not provided in command line => set default
         if( ((delay<1.0) && (delay>0.0)) || (delay<=0.0) ) delay = PCM_DELAY_DEFAULT;
@@ -299,14 +299,14 @@ int main(int argc, char * argv[])
     if(delay_ms * num_events * NUM_SAMPLES < delay * 1000) ++delay_ms; //Adjust the delay_ms if it's less than delay time
     sample_t sample[max_sockets];
     cerr << "delay_ms: " << delay_ms << endl;
-    
+
     if( sysCmd != NULL ) {
         MySystem(sysCmd, sysArgv);
     }
 
 	// ================================== Begin Printing Output ==================================
-	
-	
+
+
 	// additional info case
 
 
@@ -319,7 +319,7 @@ int main(int argc, char * argv[])
         MySleepMs(delay_ms);
         memset(sample,0,sizeof(sample));
         memset(&aggregate_sample,0,sizeof(aggregate_sample));
-        
+
         if(!(m->getCPUModel() == PCM::JAKETOWN) && !(m->getCPUModel() == PCM::IVYTOWN))
         {
             for(i=0;i<NUM_SAMPLES;i++)
@@ -345,12 +345,12 @@ int main(int argc, char * argv[])
                     getPCIeEvents(m, m->WiL, delay_ms, sample);
                 }
             }
-            
+
             if(csv)
                 if(print_bandwidth)
-                    cout << "Skt,PCIeRdCur,RFO,CRd,DRd,ItoM,PRd,WiL,PCIe Rd (B),PCIe Wr (B)\n";
+                    cout << "type,Skt,PCIeRdCur,RFO,CRd,DRd,ItoM,PRd,WiL,PCIeRd,PCIeWr\n";
                 else
-                    cout << "Skt,PCIeRdCur,RFO,CRd,DRd,ItoM,PRd,WiL\n";
+                    cout << "type,Skt,PCIeRdCur,RFO,CRd,DRd,ItoM,PRd,WiL\n";
             else
                 if(print_bandwidth)
                     cout << "Skt | PCIeRdCur |  RFO  |  CRd  |  DRd  |  ItoM  |  PRd  |  WiL  | PCIe Rd (B) | PCIe Wr (B)\n";
@@ -362,6 +362,7 @@ int main(int argc, char * argv[])
             {
                 if(csv)
                 {
+		    cout << "Total,";
                     cout << i;
                     cout << "," << sample[i].total.PCIeRdCur;
                     cout << "," << sample[i].total.RFO;
@@ -375,9 +376,10 @@ int main(int argc, char * argv[])
                         cout << "," << ((sample[i].total.PCIeRdCur + sample[i].total.RFO + sample[i].total.CRd + sample[i].total.DRd)*64ULL);
                         cout << "," << ((sample[i].total.ItoM + sample[i].total.RFO)*64ULL);
                     }
-                    cout << "	(Total)\n";
-					
-					cout << i;
+                    cout << "\n";
+
+		    cout << "Miss,";
+			cout << i;
                     cout << "," << sample[i].miss.PCIeRdCur;
                     cout << "," << sample[i].miss.RFO;
                     cout << "," << sample[i].miss.CRd;
@@ -390,8 +392,9 @@ int main(int argc, char * argv[])
                         cout << "," << ((sample[i].miss.PCIeRdCur + sample[i].miss.RFO + sample[i].miss.CRd + sample[i].miss.DRd)*64ULL);
                         cout << "," << ((sample[i].miss.ItoM + sample[i].miss.RFO)*64ULL);
                     }
-                    cout << "	(Miss)\n";
-					
+                    cout << "\n";
+                    cout << "Hit,";
+
 					cout << i;
                     cout << "," << sample[i].hit.PCIeRdCur;
                     cout << "," << sample[i].hit.RFO;
@@ -405,10 +408,9 @@ int main(int argc, char * argv[])
                         cout << "," << ((sample[i].hit.PCIeRdCur + sample[i].hit.RFO + sample[i].hit.CRd + sample[i].hit.DRd)*64ULL);
                         cout << "," << ((sample[i].hit.ItoM + sample[i].hit.RFO)*64ULL);
                     }
-                    cout << "	(Hit)\n";
-					
-					
-                }
+                    cout << "\n";
+
+		}
                 else
                 {
                     cout << " " << i;
@@ -425,7 +427,7 @@ int main(int argc, char * argv[])
                         cout << "        " << unit_format((sample[i].total.ItoM + sample[i].total.RFO)*64ULL);
                     }
                     cout << "	(Total)\n";
-					
+
 					cout << " " << i;
                     cout << "    " << unit_format(sample[i].miss.PCIeRdCur);
                     cout << "      " << unit_format(sample[i].miss.RFO);
@@ -440,7 +442,7 @@ int main(int argc, char * argv[])
                         cout << "        " << unit_format((sample[i].miss.ItoM + sample[i].miss.RFO)*64ULL);
                     }
                     cout << "	(Miss)\n";
-					
+
 					cout << " " << i;
                     cout << "    " << unit_format(sample[i].hit.PCIeRdCur);
                     cout << "      " << unit_format(sample[i].hit.RFO);
@@ -457,7 +459,23 @@ int main(int argc, char * argv[])
                     cout << "	(Hit)\n";
                 }
             }
-            if(!csv)
+            if(csv) {
+                cout << "total,sys";
+                cout << "," << (aggregate_sample.PCIeRdCur);
+                cout << "," << (aggregate_sample.RFO);
+                cout << "," << (aggregate_sample.CRd);
+                cout << "," << (aggregate_sample.DRd);
+                cout << "," << (aggregate_sample.ItoM);
+                cout << "," << (aggregate_sample.PRd);
+                cout << "," << (aggregate_sample.WiL);
+                if(print_bandwidth)
+                {
+                    cout << "," << ((aggregate_sample.PCIeRdCur + aggregate_sample.CRd + aggregate_sample.DRd + aggregate_sample.RFO)*64ULL);
+                    cout << "," << ((aggregate_sample.ItoM + aggregate_sample.RFO)*64ULL);
+                }
+                cout << "\n";
+		}
+		else
             {
                 if(print_bandwidth)
                     cout << "----------------------------------------------------------------------------------------------------\n";
@@ -490,7 +508,7 @@ int main(int argc, char * argv[])
                 getPCIeEvents(m, m->PCIeNSWr, delay_ms, sample,0);
                 getPCIeEvents(m, m->PCIeNSWrF, delay_ms, sample,0);
             }
-            
+
             if(csv)
                 if(print_bandwidth)
                     cout << "Skt,PCIeRdCur,PCIeNSRd,PCIeWiLF,PCIeItoM,PCIeNSWr,PCIeNSWrF,PCIe Rd (B),PCIe Wr (B)\n";
@@ -520,7 +538,7 @@ int main(int argc, char * argv[])
                         cout << "," << ((sample[i].total.PCIeWiLF+sample[i].total.PCIeItoM+sample[i].total.PCIeNSWr+sample[i].total.PCIeNSWrF)*64ULL);
                     }
                     cout << "	(Total)\n";
-					
+
 					cout << i;
                     cout << "," << sample[i].miss.PCIeRdCur;
                     cout << "," << sample[i].miss.PCIeNSWr;
@@ -534,7 +552,7 @@ int main(int argc, char * argv[])
                         cout << "," << ((sample[i].miss.PCIeWiLF+sample[i].miss.PCIeItoM+sample[i].miss.PCIeNSWr+sample[i].miss.PCIeNSWrF)*64ULL);
                     }
                     cout << "	(Miss)\n";
-					
+
 					cout << i;
                     cout << "," << sample[i].hit.PCIeRdCur;
                     cout << "," << sample[i].hit.PCIeNSWr;
@@ -548,10 +566,10 @@ int main(int argc, char * argv[])
                         cout << "," << ((sample[i].hit.PCIeWiLF+sample[i].hit.PCIeItoM+sample[i].hit.PCIeNSWr+sample[i].hit.PCIeNSWrF)*64ULL);
                     }
                     cout << "	(Hit)\n";
-					
-					
-					
-					
+
+
+
+
                 }
                 else
                 {
@@ -568,7 +586,7 @@ int main(int argc, char * argv[])
                         cout << "         " << unit_format((sample[i].total.PCIeWiLF+sample[i].total.PCIeItoM+sample[i].total.PCIeNSWr+sample[i].total.PCIeNSWrF)*64ULL);
                     }
                     cout << "	(Total)\n";
-					
+
 					cout << " " << i;
                     cout << "      " << unit_format(sample[i].miss.PCIeRdCur);
                     cout << "      " << unit_format(sample[i].miss.PCIeNSWr);
@@ -582,7 +600,7 @@ int main(int argc, char * argv[])
                         cout << "         " << unit_format((sample[i].miss.PCIeWiLF+sample[i].miss.PCIeItoM+sample[i].miss.PCIeNSWr+sample[i].miss.PCIeNSWrF)*64ULL);
                     }
                     cout << "	(Miss)\n";
-					
+
 					cout << " " << i;
                     cout << "      " << unit_format(sample[i].hit.PCIeRdCur);
                     cout << "      " << unit_format(sample[i].hit.PCIeNSWr);
@@ -625,21 +643,21 @@ int main(int argc, char * argv[])
         }
 	++ic;
     }
-	
+
 	}
-	
-	
+
+
 	// default case
 	else if ( print_additional_info == false)
 	{
-	
+
     unsigned int ic = 1;
     while ((ic <= numberOfIterations) || (numberOfIterations == 0))
     {
         MySleepMs(delay_ms);
         memset(sample,0,sizeof(sample));
         memset(&aggregate_sample,0,sizeof(aggregate_sample));
-        
+
         if(!(m->getCPUModel() == PCM::JAKETOWN) && !(m->getCPUModel() == PCM::IVYTOWN))
         {
             for(i=0;i<NUM_SAMPLES;i++)
@@ -654,7 +672,7 @@ int main(int argc, char * argv[])
                     getPCIeEvents(m, m->SKX_PRd, delay_ms, sample, 0, m->IRQ, 1);
                     getPCIeEvents(m, m->SKX_WiL, delay_ms, sample, 0, m->IRQ, 1);
                 }
-                 else 
+                 else
                 {
                     getPCIeEvents(m, m->PCIeRdCur, delay_ms, sample);
                     getPCIeEvents(m, m->RFO, delay_ms, sample,m->RFOtid);
@@ -665,7 +683,7 @@ int main(int argc, char * argv[])
                     getPCIeEvents(m, m->WiL, delay_ms, sample);
                 }
             }
-            
+
             if(csv)
                 if(print_bandwidth)
                     cout << "Skt,PCIeRdCur,RFO,CRd,DRd,ItoM,PRd,WiL,PCIe Rd (B),PCIe Wr (B)\n";
@@ -748,7 +766,7 @@ int main(int argc, char * argv[])
                 getPCIeEvents(m, m->PCIeNSWr, delay_ms, sample,0);
                 getPCIeEvents(m, m->PCIeNSWrF, delay_ms, sample,0);
             }
-            
+
             if(csv)
                 if(print_bandwidth)
                     cout << "Skt,PCIeRdCur,PCIeNSRd,PCIeWiLF,PCIeItoM,PCIeNSWr,PCIeNSWrF,PCIe Rd (B),PCIe Wr (B)\n";
@@ -823,11 +841,11 @@ int main(int argc, char * argv[])
         }
 	++ic;
     }
-	
+
 	}
-	
+
 	// ================================== End Printing Output ==================================
-	
+
     exit(EXIT_SUCCESS);
 }
 
